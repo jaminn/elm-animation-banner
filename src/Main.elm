@@ -57,6 +57,19 @@ type Msg
     | BannerClicked
 
 
+getBannerX : Bool -> Float -> Float -> Float
+getBannerX isPlaying x dt =
+    if isPlaying then
+        if x > 100 then
+            -100
+
+        else
+            x + 0.05 * dt
+
+    else
+        x * 0.96 + 1.5 * 0.04
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -69,15 +82,10 @@ update msg model =
         Tick t ->
             ( { model
                 | textX =
-                    if model.isPlaying then
-                        if model.textX > 100 then
-                            -100
-
-                        else
-                            model.textX + 0.05 * t
-
-                    else
-                        model.textX * 0.96 + 1.5 * 0.04
+                    getBannerX
+                        model.isPlaying
+                        model.textX
+                        t
               }
             , Cmd.none
             )
@@ -115,6 +123,32 @@ bottomBtnStyle =
         ]
 
 
+bannerView bannerStr xVal =
+    div
+        [ onClick BannerClicked
+        , css
+            [ position relative
+            , height (px 50)
+            , paddingLeft (px 10)
+            , backgroundColor (hex "#555")
+            , overflow hidden
+            ]
+        ]
+        [ div
+            [ css
+                [ position absolute
+                , minWidth (pct 100)
+                , fontSize (px 18)
+                , color (hex "#fff")
+                , top (px 15)
+                , whiteSpace noWrap
+                , transforms [ translateX (pct xVal) ]
+                ]
+            ]
+            [ text bannerStr ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div [ css [ position absolute, top zero, bottom zero, right zero, left zero, displayFlex, flexDirection column ] ]
@@ -137,29 +171,7 @@ view model =
                 , property "user-select" "text"
                 ]
             ]
-            [ div
-                [ onClick BannerClicked
-                , css
-                    [ position relative
-                    , height (px 50)
-                    , paddingLeft (px 10)
-                    , backgroundColor (hex "#555")
-                    , overflow hidden
-                    ]
-                ]
-                [ div
-                    [ css
-                        [ position absolute
-                        , minWidth (pct 100)
-                        , fontSize (px 18)
-                        , color (hex "#fff")
-                        , top (px 15)
-                        , whiteSpace noWrap
-                        , transforms [ translateX (pct model.textX) ]
-                        ]
-                    ]
-                    [ text "모든 국민은 인간으로서의 존엄과 가치를 가지며, 행복을 추구할 권리를 가진다. " ]
-                ]
+            [ bannerView "모든 국민은 인간으로서의 존엄과 가치를 가지며, 행복을 추구할 권리를 가진다. " model.textX
             ]
         , div [ css [ width (pct 100), flexShrink zero, minHeight (px 60), displayFlex, justifyContent spaceAround, boxShadow4 (px 1) (px 1) (px 10) (hex "#00000022") ] ]
             [ div [ css [ bottomBtnStyle ] ]
